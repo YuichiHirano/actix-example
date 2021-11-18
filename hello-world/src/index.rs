@@ -1,13 +1,13 @@
-use actix_web::{get, web};
+use actix_web::{web};
+use std::sync::Mutex;
 
-// This struct represents state
-pub struct AppState {
-    pub app_name: String,
+pub struct AppStateWithCounter {
+    pub counter: Mutex<i32>, // <- Mutex is necessary to mutate safely across threads
 }
 
-#[get("/")]
-pub async fn index(data: web::Data<AppState>) -> String {
-    let app_name = &data.app_name; // <- get app_name
+pub async fn index(data: web::Data<AppStateWithCounter>) -> String {
+    let mut counter = data.counter.lock().unwrap(); // <- get counter's MutexGuard
+    *counter += 1; // <- access counter inside MutexGuard
 
-    format!("Hello {}!", app_name) // <- response with app_name
+    format!("Request number: {}", counter) // <- response with count
 }
